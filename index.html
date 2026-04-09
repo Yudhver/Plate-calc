@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Plate Calculator</title>
 
-<!-- PWA: Install as app on iOS & Android -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -14,11 +13,10 @@
 <meta name="theme-color" content="#C8490A">
 <meta name="description" content="Shuttering plate estimator — works offline">
 
-<!-- PWA Icon (orange branded, works on iOS & Android) -->
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23C8490A'/%3E%3Crect x='60' y='60' width='170' height='115' rx='18' fill='white'/%3E%3Crect x='282' y='60' width='170' height='115' rx='18' fill='white'/%3E%3Crect x='60' y='198' width='170' height='115' rx='18' fill='white'/%3E%3Crect x='282' y='198' width='170' height='115' rx='18' fill='white'/%3E%3Crect x='60' y='336' width='392' height='115' rx='18' fill='white'/%3E%3C/svg%3E">
 
-<!-- PWA Manifest (inline) -->
 <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Plate+Calculator%22%2C%22short_name%22%3A%22Plate+Calc%22%2C%22description%22%3A%22Shuttering+plate+estimator%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F5F2ED%22%2C%22theme_color%22%3A%22%23C8490A%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg+xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'+viewBox%3D'0+0+512+512'%253E%253Crect+width%3D'512'+height%3D'512'+rx%3D'100'+fill%3D'%2523C8490A'%2F%253E%253Crect+x%3D'60'+y%3D'60'+width%3D'170'+height%3D'115'+rx%3D'18'+fill%3D'white'%2F%253E%253Crect+x%3D'282'+y%3D'60'+width%3D'170'+height%3D'115'+rx%3D'18'+fill%3D'white'%2F%253E%253Crect+x%3D'60'+y%3D'198'+width%3D'170'+height%3D'115'+rx%3D'18'+fill%3D'white'%2F%253E%253Crect+x%3D'282'+y%3D'198'+width%3D'170'+height%3D'115'+rx%3D'18'+fill%3D'white'%2F%253E%253Crect+x%3D'60'+y%3D'336'+width%3D'392'+height%3D'115'+rx%3D'18'+fill%3D'white'%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any+maskable%22%7D%5D%7D">
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
 :root{
@@ -72,8 +70,20 @@ header p{font-size:12px;color:rgba(255,255,255,0.45);margin-top:1px;}
 .add-btn:hover{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent);}
 .err-msg{font-size:12px;color:var(--accent);margin-top:4px;}
 .calc-btn{width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius);padding:14px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:-0.01em;transition:background 0.15s,transform 0.1s;}
-.calc-btn:hover{background:#B53D08;}
-.calc-btn:active{transform:scale(0.99);}
+.calc-btn:hover:not(:disabled){background:#B53D08;}
+.calc-btn:active:not(:disabled){transform:scale(0.99);}
+.calc-btn:disabled{background:#c49282;cursor:not-allowed;}
+
+/* ── Progress bar ── */
+#progress-wrap{display:none;margin-top:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.25rem;}
+#progress-wrap.show{display:block;}
+.progress-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.6rem;}
+.progress-label{font-size:13px;font-weight:600;color:var(--text);}
+.progress-pct{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);font-weight:500;}
+.progress-track{width:100%;height:8px;background:var(--surface2);border-radius:99px;border:1px solid var(--border);overflow:hidden;}
+.progress-fill{height:100%;width:0%;background:var(--accent);border-radius:99px;transition:width 0.25s ease;}
+.progress-sub{font-size:11px;color:var(--text3);margin-top:0.5rem;}
+
 .results{display:none;}
 .results.show{display:block;}
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem;}
@@ -96,13 +106,13 @@ tbody tr:last-child td{border-bottom:none;}
 .remaining-alert strong{font-weight:600;display:block;margin-bottom:4px;}
 .remaining-hint{font-size:12px;color:var(--text3);margin-top:6px;font-style:italic;}
 .full-coverage{margin-top:1rem;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;color:var(--green);font-weight:500;}
+.reduction-note{margin-top:0.5rem;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:var(--accent);}
 .diagram-wrap{overflow-x:auto;padding-bottom:0.5rem;}
 #plate-canvas{display:block;border-radius:4px;}
 .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:1rem;}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
 .legend-swatch{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,0.15);flex-shrink:0;}
 .diagram-note{font-size:12px;color:var(--text3);margin-top:0.6rem;font-style:italic;}
-.algo-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border);border-radius:4px;padding:2px 8px;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -155,7 +165,19 @@ tbody tr:last-child td{border-bottom:none;}
     </div>
   </div>
 
-  <button class="calc-btn" onclick="calculate()">Calculate plates needed →</button>
+  <button class="calc-btn" id="calc-btn" onclick="calculate()">Calculate plates needed →</button>
+
+  <!-- Progress bar (shown while worker is running) -->
+  <div id="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label" id="progress-label">Calculating…</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-sub" id="progress-sub">Trying configuration 0 of 0</div>
+  </div>
 
   <div class="results" id="results">
     <div class="card" style="margin-top:1.25rem;">
@@ -200,6 +222,7 @@ const COLORS = ['#E8975A','#5B9BD5','#6BBF8E','#D97BAB','#8E7CC3','#4BBFBF','#D4
 
 let plates = ALL_PLATES.map((p,i) => ({...p, qty: DEFAULT_QTY[i], enabled:true, id:i}));
 let nextId = ALL_PLATES.length;
+let activeWorker = null;
 
 // ─── UI rendering ────────────────────────────────────────────────────────────
 function renderGrid() {
@@ -244,180 +267,301 @@ function addCustom() {
   renderGrid();
 }
 
+// ─── Progress bar helpers ─────────────────────────────────────────────────────
+function showProgress(total) {
+  const wrap = document.getElementById('progress-wrap');
+  wrap.classList.add('show');
+  setProgress(0, total);
+}
+function setProgress(done, total) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-sub').textContent =
+    done === total
+      ? 'Done — rendering result…'
+      : `Trying configuration ${done} of ${total}`;
+  const label = document.getElementById('progress-label');
+  if (done === total) {
+    label.textContent = 'Complete';
+  } else if (done === 0) {
+    label.textContent = 'Calculating…';
+  } else {
+    label.textContent = 'Searching for best layout…';
+  }
+}
+function hideProgress() {
+  document.getElementById('progress-wrap').classList.remove('show');
+}
+
+// ─── Calculate (kicks off Web Worker) ────────────────────────────────────────
 function calculate() {
   const lIn = toIn(document.getElementById('len-ft').value, document.getElementById('len-in').value);
   const wIn = toIn(document.getElementById('wid-ft').value, document.getElementById('wid-in').value);
   if(!lIn || !wIn) { alert('Please enter valid dimensions.'); return; }
   if(lIn*wIn > 1440000) { alert('Area too large (max ~100ft × 100ft).'); return; }
-  runCalc(lIn, wIn);
+
+  // Kill any previous worker still running
+  if(activeWorker) { activeWorker.terminate(); activeWorker = null; }
+
+  // Disable button while running
+  const btn = document.getElementById('calc-btn');
+  btn.disabled = true;
+  btn.textContent = 'Calculating…';
+
+  // Hide old results, show progress
+  document.getElementById('results').classList.remove('show');
+  showProgress(0);
+
+  // Snapshot current plate state to send to worker
+  const platesSnapshot = plates.map(p => ({...p}));
+
+  // ── Build the worker as an inline Blob so no separate file is needed ────────
+  const workerSrc = `
+(${workerFn.toString()})();
+  `;
+  const blob = new Blob([workerSrc], { type: 'application/javascript' });
+  const workerUrl = URL.createObjectURL(blob);
+  activeWorker = new Worker(workerUrl);
+  URL.revokeObjectURL(workerUrl); // free the URL immediately; worker keeps running
+
+  activeWorker.onmessage = function(e) {
+    const msg = e.data;
+    if(msg.type === 'progress') {
+      setProgress(msg.done, msg.total);
+    } else if(msg.type === 'result') {
+      activeWorker.terminate();
+      activeWorker = null;
+      setProgress(msg.total, msg.total);
+      setTimeout(() => {
+        hideProgress();
+        btn.disabled = false;
+        btn.textContent = 'Calculate plates needed →';
+        renderResult(lIn, wIn, msg.result, platesSnapshot);
+      }, 300);
+    } else if(msg.type === 'error') {
+      activeWorker.terminate();
+      activeWorker = null;
+      hideProgress();
+      btn.disabled = false;
+      btn.textContent = 'Calculate plates needed →';
+      showError(msg.message);
+    }
+  };
+
+  activeWorker.onerror = function(e) {
+    activeWorker = null;
+    hideProgress();
+    btn.disabled = false;
+    btn.textContent = 'Calculate plates needed →';
+    showError('Worker error: ' + e.message);
+  };
+
+  activeWorker.postMessage({ aW: lIn, aH: wIn, plates: platesSnapshot });
 }
 
-// ─── Core Algorithm ──────────────────────────────────────────────────────────
-// Strategy:
-//   1. Identify the primary plate (3×2) and fill as much of the area as
-//      possible using it, oriented to maximise coverage.
-//   2. For each remaining rectangular gap strip, try every combination of
-//      available plates (both orientations) via a greedy + backtracking
-//      search to achieve 100% coverage.
-//   3. Fall back to a greedy fill for any still-uncovered pixel.
-//   The layout engine works on a pixel-accurate integer grid (inches).
+// ─── Worker function (runs inside the Blob Worker) ───────────────────────────
+// This is serialised via .toString() and sent to the worker.
+// It must be fully self-contained — no closure variables from the main page.
+function workerFn() {
+  self.onmessage = function(e) {
+    const { aW, aH, plates } = e.data;
+    runCalc(aW, aH, plates);
+  };
 
-function runCalc(aW, aH) {
-  const active = plates
-    .filter(p => p.enabled && p.qty > 0)
-    .map(p => ({...p})); // shallow copy to track used qty
+  function runCalc(aW, aH, plates) {
+    const active = plates
+      .filter(p => p.enabled && p.qty > 0)
+      .map(p => ({...p}));
 
-  if(!active.length) {
-    showError('No plates available. Enable at least one plate size.');
-    return;
-  }
+    if(!active.length) {
+      self.postMessage({ type:'error', message:'No plates available. Enable at least one plate size.' });
+      return;
+    }
 
-  // Build a quota map: id → remaining count
-  const quota = {};
-  active.forEach(p => quota[p.id] = p.qty >= 9999 ? Infinity : p.qty);
+    const primary = active.find(p => p.primary) || active[0];
 
-  // Grid: 0 = free, positive = placed plate id index
-  const grid = new Int32Array(aW * aH); // 0 = empty
+    const priOrients = primary.w === primary.h
+      ? [[primary.w, primary.h]]
+      : [[primary.w, primary.h],[primary.h, primary.w]];
 
-  const placed = []; // {plateIndex, x, y, w, h}
-
-  // Helper: can we place a plate of size pw×ph at (x,y)?
-  function canPlace(x, y, pw, ph) {
-    if(x+pw > aW || y+ph > aH) return false;
-    for(let dy=0; dy<ph; dy++) for(let dx=0; dx<pw; dx++)
-      if(grid[(y+dy)*aW+(x+dx)] !== 0) return false;
-    return true;
-  }
-  function doPlace(x, y, pw, ph, pid) {
-    for(let dy=0; dy<ph; dy++) for(let dx=0; dx<pw; dx++)
-      grid[(y+dy)*aW+(x+dx)] = pid;
-  }
-  function doUnplace(x, y, pw, ph) {
-    for(let dy=0; dy<ph; dy++) for(let dx=0; dx<pw; dx++)
-      grid[(y+dy)*aW+(x+dx)] = 0;
-  }
-  function firstFree() {
-    for(let i=0;i<grid.length;i++) if(grid[i]===0) return {x:i%aW, y:Math.floor(i/aW)};
-    return null;
-  }
-
-  // ── Step 1: Saturate with primary plate ───────────────────────────────────
-  const primary = active.find(p => p.primary) || active[0];
-  const priOrients = primary.w === primary.h
-    ? [[primary.w, primary.h]]
-    : [[primary.w, primary.h],[primary.h, primary.w]];
-
-  // Fill row by row with primary plate to maximise coverage
-  for(let y=0; y<aH && quota[primary.id]>0; ) {
-    let bestOrient = null;
-    // pick orientation that fits this row height best
+    let priW = primary.w, priH = primary.h;
     for(const [pw,ph] of priOrients) {
-      if(y+ph <= aH) { bestOrient=[pw,ph]; break; }
+      if(ph <= aH) { priW=pw; priH=ph; break; }
     }
-    if(!bestOrient) break;
-    const [pw,ph] = bestOrient;
-    let placed_in_row = false;
-    for(let x=0; x<=aW-pw && quota[primary.id]>0; x+=pw) {
-      if(canPlace(x,y,pw,ph)) {
-        doPlace(x,y,pw,ph, primary.id*1000+placed.length+1);
-        placed.push({plate:primary, x,y,w:pw,h:ph});
-        if(quota[primary.id] !== Infinity) quota[primary.id]--;
-        placed_in_row = true;
+
+    const maxCols = Math.floor(aW / priW);
+    const maxRows = Math.floor(aH / priH);
+
+    // Generate all (useCols, useRows) candidates sorted by primary count desc
+    const candidates = [];
+    for(let rr = 0; rr <= maxRows; rr++) {
+      for(let rc = 0; rc <= maxCols; rc++) {
+        candidates.push({ useCols: maxCols - rc, useRows: maxRows - rr });
       }
     }
-    y += ph;
-    if(!placed_in_row) break; // shouldn't happen but safety
+    candidates.sort((a,b) => (b.useCols*b.useRows) - (a.useCols*a.useRows));
+
+    const total = candidates.length;
+    let bestResult = null;
+
+    for(let i = 0; i < candidates.length; i++) {
+      const { useCols, useRows } = candidates[i];
+
+      // Report progress before each config attempt
+      self.postMessage({ type:'progress', done: i, total });
+
+      const result = tryConfig(aW, aH, useCols, useRows, active, primary, priW, priH);
+
+      if(!bestResult || result.uncovered < bestResult.uncovered) {
+        bestResult = result;
+      }
+      if(result.uncovered === 0) break; // 100% found — stop
+    }
+
+    self.postMessage({ type:'result', result: bestResult, total });
   }
 
-  // ── Step 2: For each remaining free strip, backtrack to 100% coverage ─────
-  // We iterate: find first free cell → define the rectangular "strip" that
-  // spans from that (x,y) to the right edge of the area, with height = the
-  // smallest plate height available. Then recursively fill it.
+  function tryConfig(aW, aH, useCols, useRows, active, primary, priW, priH) {
+    // Fresh quota map for this attempt
+    const quota = {};
+    active.forEach(p => { quota[p.id] = (p.qty >= 9999 ? Infinity : p.qty); });
 
-  // Sort remaining plates by area descending (primary last since likely used up)
-  const others = active
-    .filter(p => p !== primary || (quota[p.id] > 0))
-    .sort((a,b) => b.w*b.h - a.w*a.h);
+    const grid = new Int32Array(aW * aH);
+    const placed = [];
 
-  // Backtracking fill: returns true if area fully covered, false otherwise
-  // Limit: avoid infinite loops on large areas
-  let calls = 0;
-  const MAX_CALLS = 500000;
+    function canPlace(x, y, pw, ph) {
+      if(x+pw > aW || y+ph > aH) return false;
+      for(let dy=0; dy<ph; dy++) for(let dx=0; dx<pw; dx++)
+        if(grid[(y+dy)*aW+(x+dx)] !== 0) return false;
+      return true;
+    }
+    function doPlace(x, y, pw, ph, pid) {
+      for(let dy=0; dy<ph; dy++) for(let dx=0; dx<pw; dx++)
+        grid[(y+dy)*aW+(x+dx)] = pid;
+    }
+    function doUnplace(x, y, pw, ph) {
+      for(let dy=0; dy<ph; dy++) for(let dx=0; dx<pw; dx++)
+        grid[(y+dy)*aW+(x+dx)] = 0;
+    }
+    function firstFree() {
+      for(let i=0;i<grid.length;i++) if(grid[i]===0) return {x:i%aW, y:Math.floor(i/aW)};
+      return null;
+    }
 
-  function btFill() {
-    if(++calls > MAX_CALLS) return false;
-    const fp = firstFree();
-    if(!fp) return true; // fully covered
-    const {x,y} = fp;
-    for(const p of others) {
-      if(quota[p.id] <= 0) continue;
-      const orients = p.w===p.h ? [[p.w,p.h]] : [[p.w,p.h],[p.h,p.w]];
-      for(const [pw,ph] of orients) {
-        if(canPlace(x,y,pw,ph)) {
-          const pid = p.id*1000+placed.length+1;
-          doPlace(x,y,pw,ph,pid);
-          if(quota[p.id] !== Infinity) quota[p.id]--;
-          const entry = {plate:p, x,y,w:pw,h:ph};
-          placed.push(entry);
-          if(btFill()) return true;
-          // backtrack
-          placed.pop();
-          if(quota[p.id] !== Infinity) quota[p.id]++;
-          doUnplace(x,y,pw,ph);
+    // Step 1: Place primary grid
+    if(useCols > 0 && useRows > 0 && quota[primary.id] > 0) {
+      outer:
+      for(let row=0; row<useRows; row++) {
+        for(let col=0; col<useCols; col++) {
+          if(quota[primary.id] <= 0) break outer;
+          const x = col * priW, y = row * priH;
+          if(canPlace(x, y, priW, priH)) {
+            doPlace(x, y, priW, priH, primary.id*1000+placed.length+1);
+            placed.push({plate:primary, x, y, w:priW, h:priH});
+            if(quota[primary.id] !== Infinity) quota[primary.id]--;
+          }
         }
       }
     }
-    return false;
-  }
 
-  // Run backtracking on remaining gaps
-  btFill();
+    // Step 2: Backtracking fill
+    const fillPlates = active
+      .filter(p => p.id !== primary.id || quota[p.id] > 0)
+      .sort((a,b) => b.w*b.h - a.w*a.h);
 
-  // ── Step 3: Greedy fill anything still left (backtrack budget exhausted) ──
-  // reset calls budget
-  calls = 0;
-  let fp2 = firstFree();
-  while(fp2) {
-    const {x,y} = fp2;
-    let hit = false;
-    for(const p of others) {
-      if(quota[p.id] <= 0) continue;
-      const orients = p.w===p.h ? [[p.w,p.h]] : [[p.w,p.h],[p.h,p.w]];
-      for(const [pw,ph] of orients) {
-        if(canPlace(x,y,pw,ph)) {
-          const pid = p.id*1000+placed.length+1;
-          doPlace(x,y,pw,ph,pid);
-          if(quota[p.id] !== Infinity) quota[p.id]--;
-          placed.push({plate:p, x,y,w:pw,h:ph});
-          hit = true; break;
+    let calls = 0;
+    const MAX_CALLS = 500000;
+
+    function btFill() {
+      if(++calls > MAX_CALLS) return false;
+      const fp = firstFree();
+      if(!fp) return true;
+      const {x,y} = fp;
+      for(const p of fillPlates) {
+        if(quota[p.id] <= 0) continue;
+        const orients = p.w===p.h ? [[p.w,p.h]] : [[p.w,p.h],[p.h,p.w]];
+        for(const [pw,ph] of orients) {
+          if(canPlace(x,y,pw,ph)) {
+            const pid = p.id*1000+placed.length+1;
+            doPlace(x,y,pw,ph,pid);
+            if(quota[p.id] !== Infinity) quota[p.id]--;
+            const entry = {plate:p, x,y,w:pw,h:ph};
+            placed.push(entry);
+            if(btFill()) return true;
+            placed.pop();
+            if(quota[p.id] !== Infinity) quota[p.id]++;
+            doUnplace(x,y,pw,ph);
+          }
         }
       }
-      if(hit) break;
+      return false;
     }
-    if(!hit) {
-      // Mark this cell permanently blocked (no plate fits)
-      grid[y*aW+x] = -1;
-    }
-    fp2 = firstFree();
-  }
 
-  // ── Compute stats ─────────────────────────────────────────────────────────
-  let uncovered = 0;
-  for(let i=0;i<grid.length;i++) if(grid[i]<=0) uncovered++;
+    btFill();
+
+    // Step 3: Greedy fallback
+    let fp2 = firstFree();
+    while(fp2) {
+      const {x,y} = fp2;
+      let hit = false;
+      for(const p of fillPlates) {
+        if(quota[p.id] <= 0) continue;
+        const orients = p.w===p.h ? [[p.w,p.h]] : [[p.w,p.h],[p.h,p.w]];
+        for(const [pw,ph] of orients) {
+          if(canPlace(x,y,pw,ph)) {
+            doPlace(x,y,pw,ph, p.id*1000+placed.length+1);
+            if(quota[p.id] !== Infinity) quota[p.id]--;
+            placed.push({plate:p, x,y,w:pw,h:ph});
+            hit = true; break;
+          }
+        }
+        if(hit) break;
+      }
+      if(!hit) grid[y*aW+x] = -1;
+      fp2 = firstFree();
+    }
+
+    // Count uncovered
+    let uncovered = 0;
+    for(let i=0;i<grid.length;i++) if(grid[i]<=0) uncovered++;
+
+    // grid is a TypedArray — convert to plain Array so it survives postMessage
+    return { placed, grid: Array.from(grid), uncovered, usedCols: useCols, useRows };
+  }
+}
+
+// ─── Render result (main thread — has DOM access) ────────────────────────────
+function renderResult(aW, aH, result, platesSnapshot) {
+  const { placed, grid: gridArr, uncovered, usedCols, useRows: usedRows } = result;
+
+  // Restore plate references in placed list from snapshot
+  const plateById = {};
+  platesSnapshot.forEach(p => { plateById[p.id] = p; });
+  const placedHydrated = placed.map(e => ({
+    ...e,
+    plate: plateById[e.plate.id] || e.plate
+  }));
+
+  const primary = platesSnapshot.find(p => p.primary) || platesSnapshot[0];
+  const priOrients = primary.w === primary.h
+    ? [[primary.w, primary.h]] : [[primary.w, primary.h],[primary.h, primary.w]];
+  let priW = primary.w, priH = primary.h;
+  for(const [pw,ph] of priOrients) { if(ph <= aH) { priW=pw; priH=ph; break; } }
+  const maxCols = Math.floor(aW / priW);
+  const maxRows = Math.floor(aH / priH);
+  const wasReduced = (usedCols < maxCols || usedRows < maxRows);
+  const removedPrimary = (maxCols*maxRows) - (usedCols*usedRows);
 
   const totalArea = aW*aH;
   const covered = totalArea - uncovered;
   const pct = (covered/totalArea*100).toFixed(1);
-  const totalPlates = placed.length;
+  const totalPlates = placedHydrated.length;
   const done = uncovered === 0;
 
-  // Aggregate counts by plate label
   const countMap = {};
-  placed.forEach(({plate}) => {
-    countMap[plate.id] = (countMap[plate.id]||0) + 1;
-  });
+  placedHydrated.forEach(({plate}) => { countMap[plate.id] = (countMap[plate.id]||0) + 1; });
 
-  // ── Render summary ────────────────────────────────────────────────────────
   document.getElementById('summary-grid').innerHTML = `
     <div class="metric"><div class="metric-lbl">Total area</div><div class="metric-val">${(totalArea/144).toFixed(2)} ft²</div></div>
     <div class="metric"><div class="metric-lbl">Covered</div><div class="metric-val ${done?'ok':'warn'}">${(covered/144).toFixed(2)} ft²</div></div>
@@ -427,7 +571,7 @@ function runCalc(aW, aH) {
   const tbody = document.getElementById('result-tbody');
   tbody.innerHTML = '';
   const seenPlates = new Set();
-  placed.forEach(({plate}) => {
+  placedHydrated.forEach(({plate}) => {
     if(seenPlates.has(plate.id)) return;
     seenPlates.add(plate.id);
     const c = COLORS[plate.id % COLORS.length];
@@ -441,17 +585,24 @@ function runCalc(aW, aH) {
 
   const note = document.getElementById('coverage-note');
   if(done) {
-    note.innerHTML = `<div class="full-coverage">✓ Area fully covered with ${totalPlates} plate${totalPlates!==1?'s':''}.</div>`;
+    let html = `<div class="full-coverage">✓ Area fully covered with ${totalPlates} plate${totalPlates!==1?'s':''}.</div>`;
+    if(wasReduced) {
+      html += `<div class="reduction-note">ℹ️ Used ${usedCols*usedRows} primary (3×2) plates instead of the maximum ${maxCols*maxRows} — reduced by ${removedPrimary} to allow 100% coverage with smaller plates in the remaining gap.</div>`;
+    }
+    note.innerHTML = html;
   } else {
     const uncSqFt = (uncovered/144).toFixed(4);
     note.innerHTML = `<div class="remaining-alert"><strong>Uncovered area: ${uncSqFt} ft² (${uncovered} sq in)</strong>
-      No combination of available plates can fill these ${uncovered} square inch(es) completely.
-      <div class="remaining-hint">Tip: Add a smaller custom plate size (e.g. 1ft × 6in) that matches the gap dimensions to achieve full coverage.</div></div>`;
+      No combination of available plates — even after trying all reductions of the primary plate count — can fill these ${uncovered} square inch(es) completely.
+      <div class="remaining-hint">Tip: Add a smaller custom plate size that matches the remaining gap dimensions to achieve full coverage.</div></div>`;
   }
 
   const r = document.getElementById('results');
   r.classList.add('show');
-  drawDiagram(aW, aH, placed, grid, uncovered);
+
+  // Rebuild grid as typed array for drawDiagram
+  const grid = new Int32Array(gridArr);
+  drawDiagram(aW, aH, placedHydrated, grid, uncovered, usedCols, usedRows, wasReduced);
   r.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
@@ -462,7 +613,7 @@ function showError(msg) {
 }
 
 // ─── Canvas diagram ───────────────────────────────────────────────────────────
-function drawDiagram(aW, aH, placed, grid, uncovered) {
+function drawDiagram(aW, aH, placed, grid, uncovered, usedCols, usedRows, wasReduced) {
   const canvas = document.getElementById('plate-canvas');
   const ctx = canvas.getContext('2d');
   const PAD = 28;
@@ -474,11 +625,9 @@ function drawDiagram(aW, aH, placed, grid, uncovered) {
   canvas.style.width = cW+'px'; canvas.style.height = cH+'px';
   const ox = PAD, oy = 0;
 
-  // Background
   ctx.fillStyle = '#FEF3E2';
   ctx.fillRect(ox, oy, Math.round(aW*scale), Math.round(aH*scale));
 
-  // Hatch uncovered cells
   if(uncovered > 0) {
     ctx.save();
     ctx.strokeStyle = '#C8490A'; ctx.lineWidth = 0.8; ctx.globalAlpha = 0.25;
@@ -490,7 +639,6 @@ function drawDiagram(aW, aH, placed, grid, uncovered) {
     ctx.restore();
   }
 
-  // Draw placed plates
   const colorOf = {};
   placed.forEach(({plate}) => { colorOf[plate.id] = COLORS[plate.id % COLORS.length]; });
 
@@ -504,7 +652,6 @@ function drawDiagram(aW, aH, placed, grid, uncovered) {
     ctx.strokeStyle = 'rgba(0,0,0,0.22)';
     ctx.lineWidth = 0.8;
     ctx.strokeRect(px+0.5, py+0.5, pw-1, ph-1);
-    // label
     const fs = Math.max(7, Math.min(11, Math.min(pw,ph)*0.3));
     if(pw > 36 && ph > 12) {
       ctx.fillStyle = 'rgba(0,0,0,0.58)';
@@ -514,11 +661,9 @@ function drawDiagram(aW, aH, placed, grid, uncovered) {
     }
   });
 
-  // Border
   ctx.strokeStyle = '#C8490A'; ctx.lineWidth = 2;
   ctx.strokeRect(ox+1, oy+1, Math.round(aW*scale)-2, Math.round(aH*scale)-2);
 
-  // Dimension labels
   ctx.fillStyle = '#1A1814'; ctx.font = '11px DM Mono,monospace';
   const dimY = oy + Math.round(aH*scale) + 14;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -532,7 +677,6 @@ function drawDiagram(aW, aH, placed, grid, uncovered) {
   ctx.fillText(fmtDim(aH), 0, 0);
   ctx.restore();
 
-  // Legend
   const leg = document.getElementById('diagram-legend');
   leg.innerHTML = '';
   const seen = new Set();
@@ -549,15 +693,17 @@ function drawDiagram(aW, aH, placed, grid, uncovered) {
     leg.appendChild(it);
   }
 
-  document.getElementById('diagram-note').textContent =
-    'Algorithm: primary plate saturation → backtracking gap fill → greedy fallback. Both orientations tried at each step. Actual site placement may vary.';
+  const algoNote = wasReduced
+    ? 'Algorithm: primary reduction search (tried all col/row combinations) → backtracking gap fill → greedy fallback. Primary count was reduced to achieve 100% coverage.'
+    : 'Algorithm: primary plate saturation → backtracking gap fill → greedy fallback. Both orientations tried at each step. Actual site placement may vary.';
+  document.getElementById('diagram-note').textContent = algoNote;
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 renderGrid();
 </script>
 
-<!-- PWA Service Worker: enables offline use -->
+<!-- PWA Service Worker -->
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
