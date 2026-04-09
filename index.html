@@ -560,14 +560,7 @@ renderGrid();
 <!-- PWA Service Worker: enables offline use -->
 <script>
 if ('serviceWorker' in navigator) {
-  const swCode = `
-    self.addEventListener('install', () => self.skipWaiting());
-    self.addEventListener('fetch', e => {
-      e.respondWith(fetch(e.request).catch(() => new Response('Offline')));
-    });
-  `;
-  const blob = new Blob([swCode], { type: 'application/javascript' });
-  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 </script>
 </body>
